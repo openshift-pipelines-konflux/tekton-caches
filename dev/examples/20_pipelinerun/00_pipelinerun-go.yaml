@@ -2,13 +2,13 @@
 apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
-  name: pipelinerun-go
+  generateName: pipelinerun-go-
 spec:
   pipelineRef:
     name: pipeline-go
   params:
     - name: repo_url
-      value: https://github.com/chmouel/go-helloworld
+      value: https://github.com/tektoncd/pipeline.git
     - name: revision
       value: main
       # This uses OpenShift internal registry, point it to your own or the public
@@ -16,10 +16,8 @@ spec:
       # attached to the serviceaccount running the pipelineRun
     - name: registry
       value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)
-    - name: buildCommand
-      value: go build -v ./
     - name: image
-      value: golang:1.21
+      value: golang
   workspaces:
     - name: source
       emptyDir: {}

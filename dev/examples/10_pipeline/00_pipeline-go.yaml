@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
-  name: pipeline
+  name: pipeline-go
 spec:
   params:
     - name: repo_url
@@ -16,7 +16,7 @@ spec:
       default: go build -v .
     - name: cachePatterns
       type: array
-      default: [ "**go.mod", "**go.sum" ]
+      default: ["**go.mod", "**go.sum"]
     - name: image
       type: string
       default: golang:latest
@@ -25,7 +25,6 @@ spec:
       default: "false"
   workspaces:
     - name: source
-    - name: cred
   tasks:
     - displayName: Build go application
       name: build-task
@@ -35,7 +34,6 @@ spec:
       taskSpec:
         workspaces:
           - name: source
-          - name: cred
         params:
           - name: buildCommand
             default: $(params.buildCommand)
@@ -64,26 +62,26 @@ spec:
                 value: $(params.revision)
           - name: cache-fetch
             ref:
-              name: cache-fetch
+              resolver: cluster
+              params:
+                - name: name
+                  value: cache-fetch
+                - name: namespace
+                  value: openshift-pipelines
+                - name: kind
+                  value: stepaction
             params:
               - name: PATTERNS
                 value: $(params.cachePatterns)
               - name: SOURCE
-                value: $(params.registry)/cache-go:{{hash}}
+                value: oci://$(params.registry)/cache-go:{{hash}}
               - name: CACHE_PATH
                 value: $(workspaces.source.path)/cache
               - name: WORKING_DIR
                 value: $(workspaces.source.path)/repo
-              - name: AWS_SHARED_CREDENTIALS_FILE
-                value: $(workspaces.cred.path)/credentials
-              - name: AWS_CONFIG_FILE
-                value: $(workspaces.cred.path)/config
-              - name: GOOGLE_APPLICATION_CREDENTIALS
-                value: $(workspaces.cred.path)/creds.json
-
-          - name: run-go-build
-            WORKING_DIR: $(workspaces.source.path)/repo
-            image: $(params.image)
+          - image: $(params.image)
+            workingDir: $(workspaces.source.path)/repo
+            name: run-go-build
             env:
               - name: GOCACHE
                 value: $(workspaces.source.path)/cache/gocache
@@ -92,27 +90,24 @@ spec:
             script: |
               set -x
               git config --global --add safe.directory $(workspaces.source.path)/repo
-              $(params.buildCommand)
+              go test -v ./... --cover
               echo "Cache size is $(du -sh $(workspaces.source.path)/cache)"
           - name: cache-upload
             ref:
-              name: cache-upload
+              resolver: cluster
+              params:
+                - name: name
+                  value: cache-upload
+                - name: namespace
+                  value: openshift-pipelines
+                - name: kind
+                  value: stepaction
             params:
               - name: PATTERNS
                 value: $(params.cachePatterns)
               - name: TARGET
-                value: $(params.registry)/cache-go:{{hash}}
+                value: oci://$(params.registry)/cache-go:{{hash}}
               - name: CACHE_PATH
                 value: $(workspaces.source.path)/cache
               - name: WORKING_DIR
                 value: $(workspaces.source.path)/repo
-              - name: DOCKER_CONFIG
-                value: $(workspaces.cred.path)
-              - name: AWS_SHARED_CREDENTIALS_FILE
-                value: $(workspaces.cred.path)/credentials
-              - name: AWS_CONFIG_FILE
-                value: $(workspaces.cred.path)/config
-              - name: FORCE_CACHE_UPLOAD
-                value: $(params.force-cache-upload)
-              - name: GOOGLE_APPLICATION_CREDENTIALS
-                value: $(workspaces.cred.path)/creds.json

@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
-  name: pipelinerun-oci-test
+  generateName: pipelinerun-oci-test-
 spec:
   pipelineRef:
     name: pipeline
@@ -13,11 +13,11 @@ spec:
       value: main
       # This uses S3 bucket  to upload Caches
     - name: registry
-      value: oci://ttl.sh
+      value: oci://kind-registry:5000/$(context.pipelineRun.namespace)
     - name: buildCommand
       value: go build -v ./
     - name: image
-      value: golang:1.21
+      value: golang:1.24
   workspaces:
     - name: cred
       emptyDir: {}

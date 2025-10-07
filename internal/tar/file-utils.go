@@ -101,7 +101,7 @@ func ExtractTarGz(file *os.File, targetDir string) error {
 }
 
 func ExtractTar(file *os.File, targetDir string) error {
-	log.Printf("Extracting tar...%s", file.Name())
+	log.Printf("Extracting tar...  %s", file.Name())
 	return extract(tar.NewReader(file), targetDir)
 }
 
@@ -126,6 +126,7 @@ func extract(tr *tar.Reader, targetDir string) error {
 		if err != nil {
 			return err
 		}
+
 		switch header.Typeflag {
 		case tar.TypeDir:
 			// Ensure directory exists
@@ -133,14 +134,19 @@ func extract(tr *tar.Reader, targetDir string) error {
 				return err
 			}
 			// Change the directory permission so that all users can create/update files inside.
-			if err := os.Chmod(path, os.ModePerm); err != nil {
-				return fmt.Errorf("failed to change ownership of %s: %w", path, err)
+			if err := os.Chmod(path, os.ModePerm); path != baseDir && err != nil {
+				return fmt.Errorf("failed to change permissions of %s: %w", path, err)
 			}
 		case tar.TypeReg:
 			outFile, err := os.Create(path)
 			if err != nil {
-				return fmt.Errorf("creating file %s: %w", path, err)
+				return fmt.Errorf("error while creating file %s: %w", path, err)
 			}
+
+			if err = outFile.Chmod(os.FileMode(0o775)); err != nil {
+				return fmt.Errorf("error while updating permissions of the file %s: %w", path, err)
+			}
+
 			const maxFileSize = 100 * 1024 * 1024 // 100 MB
 
 			limited := &io.LimitedReader{

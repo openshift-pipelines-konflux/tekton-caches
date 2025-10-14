@@ -26,7 +26,7 @@ require (
 	cloud.google.com/go/auth/oauth2adapt v0.2.4 // indirect
 	cloud.google.com/go/compute/metadata v0.6.0 // indirect
 	cloud.google.com/go/iam v1.2.1 // indirect
-	cloud.google.com/go/storage v1.43.0 // indirect
+	cloud.google.com/go/storage v1.57.0 // indirect
 	contrib.go.opencensus.io/exporter/ocagent v0.7.1-0.20200907061046-05415f1de66d // indirect
 	contrib.go.opencensus.io/exporter/prometheus v0.4.2 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect

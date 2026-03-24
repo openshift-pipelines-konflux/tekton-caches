@@ -23,11 +23,11 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
     steps:
-      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493 # v4.1.1
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.1.1
       - name: Set up Go
         uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
         with:
-          go-version: "1.23"
+          go-version: "1.25"
       - run: go env
       - name: go build
         run: go build -v ./...
@@ -37,6 +37,7 @@ jobs:
           golangci-lint: latest
       - name: Lint Go Code
         run: |
+          golangci-lint --version
           make lint-go
       - name: Run Unit tests
         run: |
@@ -50,7 +51,7 @@ jobs:
     needs: [ go ]
     steps:
       - uses: ko-build/setup-ko@v0.9
-      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493 # v4.1.1
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.1.1
       - uses: azure/setup-helm@v4
       - uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
         with:
@@ -93,12 +94,12 @@ jobs:
     permissions: write-all
 
     steps:
-      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493 # v4.1.1
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.1.1
       - uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
         with:
           go-version: "1.22"
       - id: meta
-        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # 5.8.0
+        uses: docker/metadata-action@318604b99e75e41977312d83839a89be02ca4893 # 5.9.0
         with:
           images: ghcr.io/${{ github.repository }}/cache
           flavor: |
